@@ -18,7 +18,7 @@ IMPLEMENT
     return res.status(403).json("token required");
   }
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+  jwt.verify(token, process.env.JWT_SECRET || "keepitsafe,keepitsecret", (err, decoded) => {
     if (err) {
       return res.status(400).json("token invalid")
     }

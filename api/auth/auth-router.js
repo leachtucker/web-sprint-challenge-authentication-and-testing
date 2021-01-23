@@ -1,12 +1,13 @@
 const router = require('express').Router();
-
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+
+const validateUserCreds = require('./validateUserCreds');
 
 const Users = require('./users-model');
 const dbErrorMsg = { message: "There has been an error with the database" }
 
-router.post('/register', validateInput(), async (req, res) => {
+router.post('/register', validateUserCreds(), async (req, res) => {
   try {
     const isUsernameTaken = (await Users.findByUsername(req.credentials.username) ? true : false)
 
@@ -24,31 +25,7 @@ router.post('/register', validateInput(), async (req, res) => {
   }
 });
 
-router.post('/login', validateInput(), async (req, res) => {
-/*
-IMPLEMENT
-You are welcome to build additional middlewares to help with the endpoint's functionality.
-
-1- In order to log into an existing account the client must provide `username` and `password`:
-  {
-    "username": "Captain Marvel",
-    "password": "foobar"
-  }
-
-2- On SUCCESSFUL login,
-  the response body should have `message` and `token`:
-  {
-    "message": "welcome, Captain Marvel",
-    "token": "eyJhbGciOiJIUzI ... ETC ... vUPjZYDSa46Nwz8"
-  }
-
-3- On FAILED login due to `username` or `password` missing from the request body,
-  the response body should include a string exactly as follows: "username and password required".
-
-4- On FAILED login due to `username` not existing in the db, or `password` being incorrect,
-  the response body should include a string exactly as follows: "invalid credentials".
-*/
-
+router.post('/login', validateUserCreds(), async (req, res) => {
   try {
     const user = await Users.findByUsername(req.credentials.username);
 
@@ -62,7 +39,7 @@ You are welcome to build additional middlewares to help with the endpoint's func
     }
 
     // Generate JWT -- setup additional JWT settings with an options obj in this call
-    const token = jwt.sign({ sub: user.id, username: user.username }, process.env.JWT_SECRET);
+    const token = jwt.sign({ sub: user.id, username: user.username }, process.env.JWT_SECRET || "keepitsafe,keepitsecret");
     if (!token) {
       return res.status(500).json("please try again");
     }
@@ -77,22 +54,5 @@ You are welcome to build additional middlewares to help with the endpoint's func
   }
 
 });
-
-// ROUTER MIDDLEWARE //
-function validateInput() {
-  return function (req, res, next) {
-    const { username, password } = req.body;
-
-    if (!username || !password) {
-      return res.status(400).json("username and password required");
-    }
-
-    req.credentials = {
-      username,
-      password
-    }
-    next();
-  }
-}
 
 module.exports = router;
