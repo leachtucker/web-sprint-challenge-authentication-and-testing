@@ -10,7 +10,7 @@ function validateUserCreds() {
             username,
             password
         }
-        
+
         next();
     }
 }

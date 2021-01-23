@@ -15,7 +15,7 @@ router.post('/register', validateUserCreds(), async (req, res) => {
       return res.status(400).json("username taken")
     }
 
-    const passwordHash = bcrypt.hashSync(req.credentials.password);
+    const passwordHash = bcrypt.hashSync(req.credentials.password, process.env.SALT || 8);
 
     const newUser = await Users.add({ username: req.credentials.username, password: passwordHash });
 
